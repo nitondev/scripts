@@ -25,7 +25,7 @@ remove() {
 	echo "Repository removed from system."
 }
 
-if [ "$1" == "remove"]; then
+if [ "$1" == "remove" ]; then
 	remove
 else
 	install
