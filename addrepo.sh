@@ -1,7 +1,7 @@
 #!/bin/bash
 
 install() {
-	echo -e "[niton.dev repo install]\n"
+    echo -e "[niton.dev repo install]\n"
 	
     if command -v apt &> /dev/null; then
         update_command="apt update"
@@ -20,7 +20,7 @@ install() {
 }
 
 remove() {
-	echo -e "[niton.dev repo uninstall]\n"
+    echo -e "[niton.dev repo uninstall]\n"
     echo "Repository removed from system."
 }
 
