@@ -1,7 +1,8 @@
 #!/bin/bash
-echo -e "[niton.dev repo install]\n"
 
 install() {
+	echo -e "[niton.dev repo install]\n"
+	
     if command -v apt &> /dev/null; then
         update_command="apt update"
         echo "Debian-based system."
@@ -19,6 +20,7 @@ install() {
 }
 
 remove() {
+	echo -e "[niton.dev repo uninstall]\n"
     echo "Repository removed from system."
 }
 
