@@ -61,9 +61,7 @@ while [[ ! "$USER_INPUT" =~ ^[YyNn]$ ]]; do
 done
 
 format_disk() {
-	echo -e "
-	-------- Wiping Disk --------
-	"
+
 	echo "Wiping disk and creating new GPT partition table."
 	parted --script "$DISK_SELECT" mklabel gpt
 	echo "Creating EFI System Partition (512MB)..."
@@ -87,17 +85,6 @@ format_disk() {
 	
 	echo "Partitioning and formatting completed."
 }
-
-
-
-
-if [[ "$USER_INPUT" =~ ^[Yy]$ ]]; then
-    format_disk
-else
-    echo -e "\nAborting installation script.."
-    exit 1
-fi
-
 
 
 
