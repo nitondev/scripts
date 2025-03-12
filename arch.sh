@@ -14,18 +14,18 @@ echo -e "
 lsblk
 
 echo -e "\nSelect disk to format (eg /dev/sda)"
-read -p "> " DISK_SELECT
+read -r -p "> " DISK_SELECT </dev/tty
 
 echo
 echo "Disk '$DISK_SELECT' selected for formating."
 
 echo -e  "\nWarning: This will erase all data on the selected disk!\nThis action cannot be undone."
-read -p "Do you want to continue? (y/N): " USER_INPUT
+read -r -p "Do you want to continue? (y/N): " USER_INPUT </dev/tty
 USER_INPUT=${USER_INPUT:-n} 
 
 while [[ ! "$USER_INPUT" =~ ^[YyNn]$ ]]; do
     echo "Invalid input."
-    read -p "Do you want to continue? (y/N): " USER_INPUT
+    read -r -p "Do you want to continue? (y/N): " USER_INPUT </dev/tty
     USER_INPUT=${USER_INPUT:-n}
 done
 
