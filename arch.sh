@@ -6,7 +6,7 @@ echo -e "
 -------- Updating system --------
 "
 sleep 1
-pacman -Syu
+#pacman -Syu
 
 echo -e "
 -------- Disk Formating --------
