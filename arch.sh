@@ -3,12 +3,6 @@
 set -e
 
 echo -e "
--------- Updating system --------
-"
-sleep 1
-# pacman -Syu
-
-echo -e "
 -------- Disk Formatting --------
 "
 lsblk || { echo "Failed to list block devices."; exit 1; }
@@ -32,32 +26,46 @@ while [[ ! "$USER_INPUT" =~ ^[YyNn]$ ]]; do
 done
 
 format_disk() {
-    echo "Wiping disk and creating new GPT partition table."
+
+	echo -e "
+	-------- Wiping Disk --------
+	"
     parted --script "$DISK_SELECT" mklabel gpt || { echo "Failed to create partition table."; exit 1; }
 
-    echo "Creating EFI System Partition (512MB)..."
+	echo -e "
+	-------- Creating EFI  --------
+	"
     parted --script "$DISK_SELECT" mkpart ESP fat32 1MiB 513MiB
     parted --script "$DISK_SELECT" set 1 esp on
 
-    echo "Creating Swap Partition (2GB)..."
+    echo -e "
+    -------- Creating Swap --------
+    "
     parted --script "$DISK_SELECT" mkpart primary linux-swap 513MiB 2561MiB
 
-    echo "Creating Root Partition (remaining space)..."
+    echo -e "
+    -------- Root Partition --------
+    "
     parted --script "$DISK_SELECT" mkpart primary ext4 2561MiB 100%
 
-    echo "Formatting partitions..."
+    echo -e "
+    -------- Formating Partition --------
+    "
     mkfs.fat -F32 "${DISK_SELECT}1"
     mkswap "${DISK_SELECT}2"
     mkfs.ext4 "${DISK_SELECT}3"
 
-    echo "Mounting partitions..."
+    echo -e "
+    -------- Mounting Partitions --------
+    "
     mount "${DISK_SELECT}3" /mnt
     mkdir -p /mnt/boot
     mount "${DISK_SELECT}1" /mnt/boot
     swapon "${DISK_SELECT}2"
 
-    echo "Partitioning and formatting completed."
+    echo -e "\nPartitioning and formatting completed."
 }
+
 
 if [[ "$USER_INPUT" =~ ^[Yy]$ ]]; then
     format_disk
@@ -65,3 +73,14 @@ else
     echo -e "\nAborting installation script.."
     exit 1
 fi
+
+echo -e "
+	-------- Installing Base Packages --------
+"
+pacstrap /mnt base linux linux-firmware vim networkmanager
+
+echo -e "
+	-------- Generating fstab --------
+"
+
+genfstab -U /mnt >> /mnt/etc/fstab
