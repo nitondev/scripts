@@ -22,7 +22,7 @@ if [[ -z "$TIMEZONE" ]]; then
     TIMEZONE="UTC"
 fi
 
-echo "-------- Disk Partition --------"
+echo -e "\n-------- Disk Partition --------"
 
 # List available disks
 lsblk
