@@ -62,11 +62,13 @@ mkfs.ext4 "$DISK"3
 mkswap "$DISK"2
 
 mount "$DISK"3 /mnt
-mkdir -p /mnt/boot
-mount "$DISK"1 /mnt/boot
+mkdir -p /mnt/boot/efi
+mount "$DISK"1 /mnt/boot/efi
 
 swapon "$DISK"2
 
 echo -e "\n-------- Base Package Install --------"
 sleep 2
-pacstrap /mnt base linux linux-firmware nano networkmanager
+pacstrap /mnt base linux linux-firmware nano networkmanager grub efibootmgr
+
+genfstab -U /mnt >> /mnt/etc/fstab
