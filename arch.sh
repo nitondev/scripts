@@ -18,7 +18,15 @@ echo "-------- Disk Partition --------"
 # List available disks
 lsblk
 
-read -rp "Enter the disk you want to use (e.g., /dev/sda): " DISK
+PS3="Select a disk: "
+select DISK in $(lsblk -dno NAME | grep -E '^/dev/sd'); do
+    if [[ -n "$DISK" ]]; then
+        echo "You selected $DISK"
+        break
+    else
+        echo "Invalid choice, please try again."
+    fi
+done
 
 # Validate disk existence
 if [[ ! -b "$DISK" ]]; then
