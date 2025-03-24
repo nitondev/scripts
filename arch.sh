@@ -46,12 +46,16 @@ fi
 
 echo -e "\nStarting partitioning of $DISK..."
 
+echo "[Partition]: Creating GPT table..."
 parted -s "$DISK" mklabel gpt
 
+echo "[Partition]: Creating /boot ... $BOOT_SIZE"
 parted -s "$DISK" mkpart primary ext4 1MiB $BOOT_SIZE
 
+echo "[Partition]: Creating /swap ... $SWAP_SIZE"
 parted -s "$DISK" mkpart primary linux-swap $BOOT_SIZE_MI"MiB" $((BOOT_SIZE_MI + SWAP_SIZE_MI))"MiB"
 
+echo "[Partition]: Creating /root ... $ROOT_SIZE"
 parted -s "$DISK" mkpart primary ext4 $((BOOT_SIZE_MI + SWAP_SIZE_MI))"MiB" 100%
 
 
