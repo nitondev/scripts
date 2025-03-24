@@ -23,17 +23,27 @@ read -r -p "> " DISK </dev/tty
 
 # Validate disk existence
 if [[ ! -b "$DISK" ]]; then
-    echo "Error: $DISK does not exist!"
+    echo -e "\nError: $DISK does not exist!"
     exit 1
 fi
 
 # Confirm user choice before proceeding
-echo -e "\nYou have selected $DISK. Proceeding with partitioning and formatting..."
+echo -e "\nYou have selected $DISK."
 read -rp "Are you sure? (y/N): " CONFIRM </dev/tty
 if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
     echo -e "\nAborting operation."
     exit 0
 fi
 
-echo "Starting partitioning of $DISK..."
+echo -e "\nStarting partitioning of $DISK..."
 
+parted $DISK --script mklabel gpt
+
+parted $DISK_SELECT --script mkpart primary ext4 1MiB $BOOT_SIZE
+
+parted $DISK_SELECT --script mkpart primary linux-swap $BOOT_SIZE $((BOOT_SIZE+SWAP_SIZE))
+
+parted $DISK_SELECT --script mkpart primary ext4 $((BOOT_SIZE+SWAP_SIZE)) 100%
+
+
+echo -e "\n-------- Disk Formatting --------"
