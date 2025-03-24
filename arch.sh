@@ -18,7 +18,6 @@ echo "-------- Disk Partition --------"
 # List available disks
 lsblk
 
-echo
 read -rp "Enter the disk you want to use (e.g., /dev/sda): " DISK
 
 # Validate disk existence
