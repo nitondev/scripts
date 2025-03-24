@@ -37,13 +37,13 @@ fi
 
 echo -e "\nStarting partitioning of $DISK..."
 
-parted $DISK --script mklabel gpt
+parted -s "$DISK" mklabel gpt
 
-parted $DISK_SELECT --script mkpart primary ext4 1MiB $BOOT_SIZE
+parted -s "$DISK" mkpart primary ext4 1MiB $BOOT_SIZE
 
-parted $DISK_SELECT --script mkpart primary linux-swap $BOOT_SIZE $((BOOT_SIZE+SWAP_SIZE))
+parted -s "$DISK" mkpart primary linux-swap $BOOT_SIZE $((BOOT_SIZE+SWAP_SIZE))
 
-parted $DISK_SELECT --script mkpart primary ext4 $((BOOT_SIZE+SWAP_SIZE)) 100%
+parted -s "$DISK" mkpart primary ext4 $((BOOT_SIZE+SWAP_SIZE)) 100%
 
 
 echo -e "\n-------- Disk Formatting --------"
