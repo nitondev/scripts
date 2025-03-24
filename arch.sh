@@ -56,3 +56,9 @@ parted -s "$DISK" mkpart primary ext4 $((BOOT_SIZE_MI + SWAP_SIZE_MI))"MiB" 100%
 
 
 echo -e "\n-------- Disk Formatting --------"
+
+mkfs.fat -F 32 "$DISK"1
+mkswap "$DISK"2
+
+mount "$DISK"3 /mnt
+mkdir -p /mnt/boot
