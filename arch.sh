@@ -29,7 +29,7 @@ fi
 
 # Confirm user choice before proceeding
 echo "You have selected $DISK. Proceeding with partitioning and formatting..."
-read -rp "Are you sure? (y/N): " CONFIRM
+read -rp "Are you sure? (y/N): " CONFIRM </dev/tty
 if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
     echo "Aborting operation."
     exit 0
