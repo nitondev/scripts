@@ -2,10 +2,19 @@
 
 set -e
 
+convert_to_miB() {
+    echo $(( $(echo "$1" | sed 's/[A-Za-z]*//g') * 1024 ))
+}
+
 BOOT_SIZE="1GiB"
 SWAP_SIZE="2GiB"
 ROOT_SIZE="100%"
+
 TIMEZONE=$(curl -s http://ip-api.com/json | sed -n 's/.*"timezone":"\([^"]*\)".*/\1/p')
+
+# Convert sizes to MiB
+BOOT_SIZE_MI=$(( $(convert_to_miB "$BOOT_SIZE") ))
+SWAP_SIZE_MI=$(( $(convert_to_miB "$SWAP_SIZE") ))
 
 # Check if we fetched a valid timezone
 if [[ -z "$TIMEZONE" ]]; then
@@ -41,9 +50,9 @@ parted -s "$DISK" mklabel gpt
 
 parted -s "$DISK" mkpart primary ext4 1MiB $BOOT_SIZE
 
-parted -s "$DISK" mkpart primary linux-swap $BOOT_SIZE $((BOOT_SIZE+SWAP_SIZE))
+parted -s "$DISK" mkpart primary linux-swap $BOOT_SIZE_MI"MiB" $((BOOT_SIZE_MI + SWAP_SIZE_MI))"MiB"
 
-parted -s "$DISK" mkpart primary ext4 $((BOOT_SIZE+SWAP_SIZE)) 100%
+parted -s "$DISK" mkpart primary ext4 $((BOOT_SIZE_MI + SWAP_SIZE_MI))"MiB" 100%
 
 
 echo -e "\n-------- Disk Formatting --------"
