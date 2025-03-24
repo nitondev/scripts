@@ -76,3 +76,11 @@ sleep 2
 pacstrap /mnt base linux linux-firmware nano networkmanager grub efibootmgr
 
 genfstab -U /mnt >> /mnt/etc/fstab
+
+arch-chroot /mnt
+
+echo -e "\n-------- Timezone Setup --------"
+
+echo -e "Detected timezone: $TIMEZONE \n"
+ln -sf /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
+hwclock --systohc
