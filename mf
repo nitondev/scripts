@@ -2,7 +2,7 @@
 
 ostype=$(uname)
 distro=""
-packages=""
+pkgs=""
 managers="dpkg pacman yay apk dnf xbps flatpak"
 
 
@@ -66,6 +66,11 @@ if [ "$ostype" = "Linux" ]; then
 	if [ -n "$SHELL" ]; then
 		shell=$(basename "$SHELL")
 	else
+		# Fallback: get default shell for user with id $UID (or root)
+		shell=$(getent passwd $(id -u) | cut -d: -f7 | xargs basename)
+	fi
+
+	if [ -z "$shell" ]; then
 		shell="unknown"
 	fi
 
@@ -81,41 +86,62 @@ if [ "$ostype" = "Linux" ]; then
 			case "$cmd" in
 				dpkg)
 					count=$(dpkg -l | grep -c '^ii')
-					packages="$packages, $count (dpkg)"
+					pkgs="$pkgs, $count (dpkg)"
 					;;
 				pacman)
 					count=$(pacman -Qq 2>/dev/null | wc -l)
-					packages="$packages, $count (pacman)"
+					pkgs="$pkgs, $count (pacman)"
 					;;
 				yay)
 					count=$(yay -Qq 2>/dev/null | wc -l)
-					packages="$packages, $count (yay)"
+					pkgs="$pkgs, $count (yay)"
 					;;
 				apk)
 					count=$(apk info | wc -l)
-					packages="$packages, $count (apk)"
+					pkgs="$pkgs, $count (apk)"
 					;;
 				dnf)
 					count=$(dnf list installed 2>/dev/null | grep -cE '^[a-zA-Z0-9]')
-					packages="$packages, $count (dnf)"
+					pkgs="$pkgs, $count (dnf)"
 					;;
 				xbps)
 					count=$(xbps-query -l | wc -l)
-					packages="$packages, $count (xbps)"
+					pkgs="$pkgs, $count (xbps)"
 					;;
 				flatpak)
 					count=$(flatpak list --columns=application | wc -l)
-					packages="$packages, $count (flatpak)"
+					pkgs="$pkgs, $count (flatpak)"
 					;;
 			esac
 		fi
 	done	
 fi
 
-packages=$(printf "%s" "$packages" | sed 's/^, //')
+pkgs=$(printf "%s" "$pkgs" | sed 's/^, //')
+
+# Get uptime.
+if [ "$distro" = "Android" ]; then
+	uptime=$(uptime -p | sed 's/^up //')
+else
+	if [ -r /proc/uptime ]; then
+		total_secs=$(cut -d. -f1 < /proc/uptime)
+		days=$((total_secs / 86400))
+		hours=$(((total_secs % 86400) / 3600))
+		minutes=$(((total_secs % 3600) / 60))
+
+		uptime=""
+		[ "$days" -gt 0 ] && uptime="${uptime}${days}d "
+		[ "$hours" -gt 0 ] && uptime="${uptime}${hours}h "
+		uptime="${uptime}${minutes}m"
+		uptime=$(printf "%s" "$uptime" | sed 's/ *$//')
+	else
+		uptime="unknown" 
+	fi
+fi
 
 # Printing the system info.
 printf "%-7s %s\n" "OS:" "$os"
 printf "%-7s %s\n" "Kernel:" "$kernel"
 printf "%-7s %s\n" "Shell:" "$shell"
-printf "%-7s %s\n" "Pkgs:" "$packages"
+printf "%-7s %s\n" "Pkgs:" "$pkgs"
+printf "%-7s %s\n" "Uptime:" "$uptime"
