@@ -1,0 +1,121 @@
+#!/bin/sh
+
+ostype=$(uname)
+distro=""
+packages=""
+managers="dpkg pacman yay apk dnf xbps flatpak"
+
+
+if command -v getprop >/dev/null 2>&1; then
+	distro="Android"
+fi
+
+if [ "$ostype" = "Linux" ]; then
+	if [ "$distro" = "Android" ]; then
+		version=$(getprop ro.build.version.release)
+		os="Android $version"
+
+	elif [ -f /etc/os-release ]; then
+
+		# Get the OS name and reformat.
+		pretty=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d= -f2 | tr -d '"')
+		lower=$(printf "%s" "$pretty" | tr '[:upper:]' '[:lower:]')
+
+		case "$lower" in
+			*debian*)
+				name="Debian"
+				version=$(printf "%s" "$pretty" | grep -o '[0-9]\{1,2\}' | head -n1)
+				os="$name $version"
+				;;
+			*ubuntu*)
+				name="Ubuntu"
+				version=$(printf "%s" "$pretty" | grep -o '[0-9]\{2\}\.[0-9]\{2\}' | head -n1)
+				os="$name $version"
+				;;
+			*arch*)
+				os="Arch Linux"
+				;;
+			*alpine*)
+				name="Alpine"
+				version=$(printf "%s" "$pretty" | grep -o '[0-9]\+\(\.[0-9]\+\)*' | head -n1)
+				os="$name $version"
+				;;
+			*fedora*)
+				name="Fedora"
+				version=$(printf "%s" "$pretty" | grep -o '[0-9]\{1,2\}' | head -n1)
+				os="$name $version"
+				;;
+			*mint*)
+				name="Linux Mint"
+				version=$(printf "%s" "$pretty" | grep -o '[0-9]\{2\}' | head -n1)
+				os="$name $version"
+				;;
+			*)
+				os="$pretty"
+				;;
+		esac
+
+	
+	fi
+	
+	# Get kernel version and trim.
+	kernel=$(uname -r)
+	kernel=${kernel%%-*}
+
+	# Get the shell.
+	if [ -n "$SHELL" ]; then
+		shell=$(basename "$SHELL")
+	else
+		shell="unknown"
+	fi
+
+	# Count installed packages.
+	for cmd in $managers; do
+		if command -v "$cmd" >/dev/null 2>&1; then
+
+			# Skip yay if pacman exists.
+			if [ "$cmd" = "yay" ] && command -v pacman >/dev/null 2>&1; then
+				continue
+			fi
+			
+			case "$cmd" in
+				dpkg)
+					count=$(dpkg -l | grep -c '^ii')
+					packages="$packages, $count (dpkg)"
+					;;
+				pacman)
+					count=$(pacman -Qq 2>/dev/null | wc -l)
+					packages="$packages, $count (pacman)"
+					;;
+				yay)
+					count=$(yay -Qq 2>/dev/null | wc -l)
+					packages="$packages, $count (yay)"
+					;;
+				apk)
+					count=$(apk info | wc -l)
+					packages="$packages, $count (apk)"
+					;;
+				dnf)
+					count=$(dnf list installed 2>/dev/null | grep -cE '^[a-zA-Z0-9]')
+					packages="$packages, $count (dnf)"
+					;;
+				xbps)
+					count=$(xbps-query -l | wc -l)
+					packages="$packages, $count (xbps)"
+					;;
+				flatpak)
+					count=$(flatpak list --columns=application | wc -l)
+					packages="$packages, $count (flatpak)"
+					;;
+			esac
+		fi
+	done	
+fi
+
+packages=$(printf "%s" "$packages" | sed 's/^, //')
+
+# Printing the system info.
+printf "%-7s %s\n" "OS:" "$os"
+printf "%-7s %s\n" "Kernel:" "$kernel"
+printf "%-7s %s\n" "Shell:" "$shell"
+printf "%-7s %s\n" "Pkgs:" "$packages"
