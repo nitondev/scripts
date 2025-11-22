@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+
+set -e
+
+# logging function
+log() {
+    printf "==> %s\n" "$1"
+}
+
+# print help
+usage() {
+    printf "mkdisk - Create a FAT32 disk image.\n\n"
+    printf "Usage:\n"
+    printf "  mkdisk -out <file.img> -size <size>\n\n"
+    printf "Options:\n"
+    printf "  -out     Output filename (default: disk.img)\n"
+    printf "  -size    Disk size (example: 64K/M/G).\n"
+    printf "  -help    Show this help\n\n"
+    exit 0
+}
+
+# validate size format
+validate_size() {
+    if [[ ! "$1" =~ ^[0-9]+[KMG]$ ]]; then
+        log "Error: Invalid size: $1?"
+        usage
+    fi
+}
+
+# find parted
+PARTED_BIN="$(command -v parted 2>/dev/null || true)"
+
+if [[ -z "$PARTED_BIN" ]]; then
+    if [[ -x /usr/sbin/parted ]]; then
+        PARTED_BIN="/usr/sbin/parted"
+    else
+        log "Missing: 'parted' not found in PATH or /usr/sbin"
+        exit 1
+    fi
+fi
+
+# parse args
+output=""
+size=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -out)
+            output="$2"
+            shift 2
+            ;;
+        -size)
+            size="$2"
+            validate_size "$size"
+            shift 2
+            ;;
+        -help)
+            usage
+            ;;
+        -*)
+            log "Unknown option: $1"
+            exit 1
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+# defaults
+output="${output:-disk.img}"
+
+# size must be set
+if [[ -z "$size" ]]; then
+    log "Error: Missing required options."
+    usage
+    exit 1
+fi
+
+# require root 
+if [[ "$(id -u)" -ne 0 ]]; then
+    printf "==> Error: Permission denied, are you root?\n"
+    exit 1
+fi
+
+# create disk
+log "Creating disk: $output [$size]"
+
+dd if=/dev/zero of="$output" bs=1 count=0 seek="$size"
+
+# create msdos partition table
+"$PARTED_BIN" "$output" --script mklabel msdos
+"$PARTED_BIN" "$output" --script mkpart primary fat32 1MiB 100%
+
+# setup loop dev
+loopdev=$(losetup --show -Pf "$output")
+log "Loop device: $loopdev"
+
+# format partition
+mkfs.fat -F 32 "${loopdev}p1"
+
+# done
+losetup -d "$loopdev"
+log "Done."
