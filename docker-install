@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+os_detect() {
+	# check if /etc/os-release exists
+	if [[ -f /etc/os-release ]]; then
+		# it does exists, source the file
+		source /etc/os-release
+
+		# fallbacks if name or version missing
+		local os_name="${NAME:-Unknown OS}"
+		local os_vers="${VERSION_ID:-N/A}"
+
+		
+		# for now we just print name and version
+		echo -e "OS Running:\n> ${os_name} ${os_vers}" 
+	fi		
+}
+
+os_detect
